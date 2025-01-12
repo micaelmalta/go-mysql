@@ -1,6 +1,9 @@
 package server
 
-import "sync"
+import (
+	"bytes"
+	"sync"
+)
 
 // interface for user credential provider
 // hint: can be extended for more functionality
@@ -12,6 +15,8 @@ type CredentialProvider interface {
 	CheckUsername(username string) (bool, error)
 	// get user credential
 	GetCredential(username string) (password string, found bool, err error)
+	// validate the password
+	ValidateUserPassword(user, password string) bool
 }
 
 func NewInMemoryProvider() *InMemoryProvider {
@@ -40,6 +45,21 @@ func (m *InMemoryProvider) GetCredential(username string) (password string, foun
 
 func (m *InMemoryProvider) AddUser(username, password string) {
 	m.userPool.Store(username, password)
+}
+
+func (m *InMemoryProvider) ValidateUserPassword(user, password string) bool {
+	clientAuthData, found, err := m.GetCredential(user)
+	if err != nil {
+		return false
+	}
+	if !found {
+		return false
+	}
+
+	if bytes.Equal([]byte(password), []byte(clientAuthData)) {
+		return true
+	}
+	return false
 }
 
 type Provider InMemoryProvider
