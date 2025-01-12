@@ -1,7 +1,6 @@
 package server
 
 import (
-	"bytes"
 	"sync"
 )
 
@@ -14,9 +13,7 @@ type CredentialProvider interface {
 	// check if the user exists
 	CheckUsername(username string) (bool, error)
 	// get user credential
-	GetCredential(username string) (password string, found bool, err error)
-	// validate the password
-	ValidateUserPassword(user, password string) bool
+	GetCredential(username string) (salt []byte, password string, found bool, err error)
 }
 
 func NewInMemoryProvider() *InMemoryProvider {
@@ -35,31 +32,16 @@ func (m *InMemoryProvider) CheckUsername(username string) (found bool, err error
 	return ok, nil
 }
 
-func (m *InMemoryProvider) GetCredential(username string) (password string, found bool, err error) {
+func (m *InMemoryProvider) GetCredential(username string) (salt []byte, password string, found bool, err error) {
 	v, ok := m.userPool.Load(username)
 	if !ok {
-		return "", false, nil
+		return nil, "", false, nil
 	}
-	return v.(string), true, nil
+	return nil, v.(string), true, nil
 }
 
 func (m *InMemoryProvider) AddUser(username, password string) {
 	m.userPool.Store(username, password)
-}
-
-func (m *InMemoryProvider) ValidateUserPassword(user, password string) bool {
-	clientAuthData, found, err := m.GetCredential(user)
-	if err != nil {
-		return false
-	}
-	if !found {
-		return false
-	}
-
-	if bytes.Equal([]byte(password), []byte(clientAuthData)) {
-		return true
-	}
-	return false
 }
 
 type Provider InMemoryProvider

@@ -24,7 +24,6 @@ const (
 	AUTH_CLEAR_PASSWORD        = "mysql_clear_password"
 	AUTH_CACHING_SHA2_PASSWORD = "caching_sha2_password"
 	AUTH_SHA256_PASSWORD       = "sha256_password"
-	AUTH_PROVIDER_PASSWORD     = "provider_password"
 )
 
 const (

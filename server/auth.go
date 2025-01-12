@@ -47,21 +47,22 @@ func (c *Conn) compareAuthData(authPluginName string, clientAuthData []byte) err
 			return nil
 		}
 		return c.compareSha256PasswordAuthData(clientAuthData, c.password)
-
-	case AUTH_PROVIDER_PASSWORD:
-		return c.compareCredentialProvider(c.user, clientAuthData)
 	default:
 		return errors.Errorf("unknown authentication plugin name '%s'", authPluginName)
 	}
 }
 
 func (c *Conn) acquirePassword() error {
-	password, found, err := c.credentialProvider.GetCredential(c.user)
+	salt, password, found, err := c.credentialProvider.GetCredential(c.user)
 	if err != nil {
 		return err
 	}
 	if !found {
 		return NewDefaultError(ER_NO_SUCH_USER, c.user, c.RemoteAddr().String())
+	}
+
+	if salt != nil {
+		c.salt = salt
 	}
 	c.password = password
 	return nil
@@ -93,13 +94,6 @@ func scrambleValidation(cached, nonce, scramble []byte) bool {
 	crypt.Write(message2)
 	m := crypt.Sum(nil)
 	return bytes.Equal(m, cached)
-}
-
-func (c *Conn) compareCredentialProvider(user string, clientAuthData []byte) error {
-	if c.credentialProvider.ValidateUserPassword(user, string(clientAuthData)) {
-		return nil
-	}
-	return ErrAccessDenied
 }
 
 func (c *Conn) compareNativePasswordAuthData(clientAuthData []byte, password string) error {

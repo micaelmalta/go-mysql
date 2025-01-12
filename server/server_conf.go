@@ -96,7 +96,7 @@ func NewServer(serverVersion string, collationId uint8, defaultAuthMethod string
 }
 
 func isAuthMethodSupported(authMethod string) bool {
-	return authMethod == AUTH_NATIVE_PASSWORD || authMethod == AUTH_CACHING_SHA2_PASSWORD || authMethod == AUTH_SHA256_PASSWORD || authMethod == AUTH_PROVIDER_PASSWORD
+	return authMethod == AUTH_NATIVE_PASSWORD || authMethod == AUTH_CACHING_SHA2_PASSWORD || authMethod == AUTH_SHA256_PASSWORD
 }
 
 func (s *Server) InvalidateCache(username string, host string) {
